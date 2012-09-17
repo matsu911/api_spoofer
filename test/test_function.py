@@ -16,6 +16,9 @@ class TestFunctions(unittest.TestCase):
                                               ['size_t', '__size'],
                                               ['size_t', '__n'],
                                               ['FILE *__restrict', '__s']]] in funcs)
+        self.assertTrue(['int', '__overflow', [['_IO_FILE *', None],
+                                               ['int', None]]] in funcs)
+        
         
     def test_get_symbol_names(self):
         syms = get_symbol_names('/bin/date')
