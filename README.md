@@ -11,6 +11,7 @@ API spoofing tool for *nix OS.
 ## Install
 
 ## Run Test Suite
+`$ python setup.py test`
 
 ## License
 Copyright &copy; 2012 Shigeaki Matsumura.  
