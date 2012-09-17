@@ -27,9 +27,12 @@ def remove_comments(s):
 def strip(str_list):
     return [x.strip() for x in str_list]
 
-def extract_function_declares(file):
+def _extract_function_declares(file):
     functions = []
     matcher = re.compile("(?:extern\s+)?(\w+)\s+(\w+)\s*\(([^)]*)\)")
     for m in [x for x in map(matcher.match, strip(remove_comments(preprocess_file(file)).split(';'))) if x]:
         functions.append([m.group(1), m.group(2), strip(m.group(3).split(','))])
     return functions
+
+def extract_function_declares(*filenames):
+    return reduce(list.__add__, map(_extract_function_declares, filenames))
