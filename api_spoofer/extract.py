@@ -24,14 +24,22 @@ def preprocess_file(filename, cpp_path='cpp', cpp_args=''):
 def remove_comments(s):
     return "\n".join([x for x in s.split('\n') if len(x) and x[0] != '#'])
 
-def strip(str_list):
-    return [x.strip() for x in str_list]
+def strip(arg):
+    if type(arg) is list:
+        return [x and x.strip() for x in arg]
+    else:
+        return arg.strip()
+
+def split_into_type_and_name(s):
+    m = re.compile("(.*?)(\w+)?$").match(s.strip())
+    return strip([m.group(1), m.group(2)])
 
 def _extract_function_declares(file):
     functions = []
     matcher = re.compile("(?:extern\s+)?((?:\w+\s+)|(?:\w+\s*\**\s*))(\w+)\s*\(([^)]*)\)")
     for m in [x for x in map(matcher.match, strip(remove_comments(preprocess_file(file)).split(';'))) if x]:
-        functions.append([m.group(1).strip(), m.group(2).strip(), strip(m.group(3).split(','))])
+        if m.group(1).strip() != 'typedef':
+            functions.append([m.group(1).strip(), m.group(2).strip(), map(split_into_type_and_name, m.group(3).split(','))])
     return functions
 
 def extract_function_declares(*filenames):
