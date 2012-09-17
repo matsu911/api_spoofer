@@ -8,7 +8,7 @@ API spoofing tool for *nix OS.
 * CPP
 * GCC
 
-## Install
+## Installation
 `$ python setup.py install`
 
 ## Run Test Suite
