@@ -31,11 +31,11 @@ def strip(arg):
         return arg.strip()
 
 def split_into_type_and_name(s):
-    m = re.compile("^(.*?)(\w+)?$").match(s.strip())
+    m = re.compile("^((?:.|\s)*?)(\w+)?$").match(s.strip())
     if len(m.group(1)) == 0:
         return strip([m.group(2), None])
     else:
-        return strip([m.group(1), m.group(2)])
+        return strip([m.group(1).replace('\n', ''), m.group(2)])
 
 def _extract_function_declares(file):
     functions = []

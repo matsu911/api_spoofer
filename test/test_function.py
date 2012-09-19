@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from api_spoofer import extract_function_declares, get_symbol_names
+from api_spoofer import extract_function_declares, get_symbol_names, split_into_type_and_name
+
+class TestExtractFunctionDeclares_thread_db_h(unittest.TestCase):
+    def test_therad_db_h(self):
+        self.funcs = extract_function_declares('/usr/include/thread_db.h')
 
 class TestExtractFunctionDeclares(unittest.TestCase):
     def setUp(self):
@@ -30,3 +34,16 @@ class TestFunctions(unittest.TestCase):
     def test_get_symbol_names(self):
         syms = get_symbol_names('/bin/date')
         self.assertTrue('clock_settime' in syms)
+
+class Test_split_into_type_and_name(unittest.TestCase):
+    def test_1(self):
+        self.assertEqual(['__const pthread_attr_t *__restrict', '__attr'],
+                         split_into_type_and_name("""__const pthread_attr_t *__restrict 
+__attr"""))
+
+    def test_2(self):
+        self.assertEqual(['__const pthread_mutexattr_t *      __restrict', '__attr'],
+                         split_into_type_and_name("""__const pthread_mutexattr_t *
+      __restrict __attr"""))
+
+        
