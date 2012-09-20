@@ -15,9 +15,16 @@ API spoofing tool for *nix OS.
 `$ python setup.py test`
 
 ## Usage
+### Generate stub code
     $ api_spoofer /bin/date > date_spoofer.c
+
+### Compile to create shared object
     $ gcc -shared -fPIC -ldl -o date_spoofer.so date_spoofer.c
+
+### Run with spoofer shared object
     $ LD_PRELOAD=date_spoofer.so date
+
+### Show help
     $ test_env/bin/api_spoofer -h
     Usage: api_spoofer [options] bin_path
 
