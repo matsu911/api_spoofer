@@ -18,6 +18,13 @@ API spoofing tool for *nix OS.
     $ api_spoofer /bin/date > date_spoofer.c
     $ gcc -shared -fPIC -ldl -o date_spoofer.so date_spoofer.c
     $ LD_PRELOAD=date_spoofer.so date
+    $ test_env/bin/api_spoofer -h
+    Usage: api_spoofer [options] bin_path
+
+    Options:
+      --version   show program's version number and exit
+      -h, --help  show this help message and exit
+      -I DIR      include directories
 
 ## License
 Copyright &copy; 2012 Shigeaki Matsumura.  
