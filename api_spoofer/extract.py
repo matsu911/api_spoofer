@@ -12,13 +12,14 @@ def preprocess_file(filename, cpp_path='cpp', cpp_args=''):
     path_list += [filename]
 
     try:
-        pipe = Popen(path_list, stdout=PIPE, universal_newlines=True)
+        pipe = Popen(path_list, stdout=PIPE, stderr=PIPE, universal_newlines=True)
         text = pipe.communicate()[0]
     except OSError as e:
         raise RuntimeError("Unable to invoke 'cpp'.  " +
             'Make sure its path was passed correctly\n' +
             ('Original error: %s' % e))
-
+    if pipe.returncode != 0:
+        raise RuntimeError("cpp got errors: %s" % filename)
     return text
 
 def remove_comments(s):
