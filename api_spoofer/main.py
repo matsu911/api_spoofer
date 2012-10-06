@@ -55,6 +55,8 @@ def extract_valid_header_files(syms, defines, include_dirs):
 
     return header_files
 
+ignored_symbols = ['calloc']
+
 def main():
     usage = "usage: %prog [options] bin_path"
     parser = OptionParser(usage=usage, version="%prog 0.0.1")
@@ -81,7 +83,7 @@ def main():
     funcs = extract_function_declares(*header_files)
 
     lines = []
-    for sym in syms:
+    for sym in [x for x in syms if x not in ignored_symbols]:
         for ret_type, fun_name, args in filter(lambda x: x[1] == sym, funcs):
             args = filter(lambda x: x[0] != 'void', args)
             for i in xrange(0, len(args)):
