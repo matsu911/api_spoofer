@@ -57,6 +57,33 @@ def extract_valid_header_files(syms, defines, include_dirs):
 
 ignored_symbols = ['calloc']
 
+def print_code(defines, includes, lines):
+    for line in defines:
+        print line
+    print
+    for line in includes:
+        print line
+    print
+    for line in lines:
+        print line
+
+def code(ret_type, fun_name, args):
+    if ret_type == 'void':
+        return """void %s(%s)
+{
+  typedef void (*ftype)(%s);
+  ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
+}
+""" % (fun_name, ", ".join([" ".join(x) for x in args]), ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args]))
+    else:
+        return """%s %s(%s)
+{
+  typedef %s (*ftype)(%s);
+  return ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
+}
+""" % (ret_type, fun_name, ", ".join([" ".join(x) for x in args]), ret_type, ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args]))
+
+
 def main():
     usage = "usage: %prog [options] bin_path"
     parser = OptionParser(usage=usage, version="%prog 0.0.1")
@@ -89,28 +116,8 @@ def main():
             for i in xrange(0, len(args)):
                 if not args[i][1]:
                     args[i][1] = 'arg%d' % i
-            if ret_type == 'void':
-                lines.append("""void %s(%s)
-{
-  typedef void (*ftype)(%s);
-  ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
-}
-""" % (fun_name, ", ".join([" ".join(x) for x in args]), ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args])))
-            else:
-                lines.append("""%s %s(%s)
-{
-  typedef %s (*ftype)(%s);
-  return ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
-}
-""" % (ret_type, fun_name, ", ".join([" ".join(x) for x in args]), ret_type, ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args])))
+            lines.append(code(ret_type, fun_name, args))
             break
 
-    for line in defines:
-        print line
-    print
-    for line in includes:
-        print line
-    print
-    for line in lines:
-        print line
+    print_code(defines, includes, lines)
 
