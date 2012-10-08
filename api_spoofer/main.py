@@ -7,6 +7,7 @@ import os, re
 from glob import glob
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
+from string import Template
 
 def extract_header_files_by_symbols(syms, header_files):
     tmp = []
@@ -67,22 +68,67 @@ def print_code(defines, includes, lines):
     for line in lines:
         print line
 
+def noreturn_def_code(ret_type, fun_name, args):
+    if len(args) and args[-1][0] == '...':
+        args = args[:-1]
+        return Template("""void $fname($args, ...)
+{
+  va_list args;
+  va_start(args, $lastarg);
+  typedef void (*ftype)($argtypes, ...);
+  ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames, args);
+  va_end(args);
+}
+""").substitute(fname=fun_name,
+                args=", ".join([" ".join(x) for x in args]), 
+                lastarg=args[-1][1],
+                argtypes=", ".join([x[0] for x in args]), 
+                argnames=", ".join([x[1] for x in args]))
+    else:
+        return Template("""void $fname($args)
+{
+  typedef void (*ftype)($argtypes);
+  ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames);
+}
+""").substitute(fname=fun_name,
+                args=", ".join([" ".join(x) for x in args]),
+                argtypes=", ".join([x[0] for x in args]), 
+                argnames=", ".join([x[1] for x in args]))
+
+def return_def_code(ret_type, fun_name, args):
+    if len(args) and args[-1][0] == '...':
+        args = args[:-1]
+        return Template("""$rettype $fname($args)
+{
+  va_list args;
+  va_start(args, $lastarg);
+  typedef $rettype (*ftype)($argtypes);
+  return ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames);
+  va_end(args);
+}
+""").substitute(rettype=ret_type,
+                fname=fun_name,
+                args=", ".join([" ".join(x) for x in args]),
+                lastarg=args[-1][1],
+                argtypes=", ".join([x[0] for x in args]),
+                argnames=", ".join([x[1] for x in args]))
+    else:
+        return Template("""$rettype $fname($args)
+{
+  typedef $rettype (*ftype)($argtypes);
+  return ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames);
+}
+""").substitute(rettype=ret_type,
+                fname=fun_name,
+                args=", ".join([" ".join(x) for x in args]),
+                argtypes=", ".join([x[0] for x in args]),
+                argnames=", ".join([x[1] for x in args]))
+
 def code(ret_type, fun_name, args):
     if ret_type == 'void':
-        return """void %s(%s)
-{
-  typedef void (*ftype)(%s);
-  ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
-}
-""" % (fun_name, ", ".join([" ".join(x) for x in args]), ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args]))
+        return noreturn_def_code(ret_type, fun_name, args)
     else:
-        return """%s %s(%s)
-{
-  typedef %s (*ftype)(%s);
-  return ((ftype)dlsym(RTLD_NEXT, "%s"))(%s);
-}
-""" % (ret_type, fun_name, ", ".join([" ".join(x) for x in args]), ret_type, ", ".join([x[0] for x in args]), fun_name, ", ".join([x[1] for x in args]))
-
+        return return_def_code(ret_type, fun_name, args)
 
 def main():
     usage = "usage: %prog [options] bin_path"
@@ -104,6 +150,7 @@ def main():
 
     includes = []
     includes.append("#include <dlfcn.h>")
+    includes.append("#include <stdarg.h>")
     for header in map(os.path.basename, header_files):
         includes.append("#include <%s>" % header)
 
