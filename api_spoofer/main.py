@@ -131,6 +131,17 @@ def code(ret_type, fun_name, args):
     else:
         return return_def_code(ret_type, fun_name, args)
 
+templates = {'printf' : """int printf(__const char* format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  typedef int (*ftype)(__const char*, ...);
+  int ret = ((ftype)dlsym(RTLD_NEXT, "vprintf"))(format, args);
+  va_end(args);
+  return ret;
+}
+"""}
+
 def main():
     usage = "usage: %prog [options] bin_path"
     parser = OptionParser(usage=usage, version="%prog 0.0.1")
@@ -160,11 +171,15 @@ def main():
     lines = []
     for sym in [x for x in syms if x not in ignored_symbols]:
         for ret_type, fun_name, args in filter(lambda x: x[1] == sym, funcs):
-            args = filter(lambda x: x[0] != 'void', args)
-            for i in xrange(0, len(args)):
-                if not args[i][1]:
-                    args[i][1] = 'arg%d' % i
-            lines.append(code(ret_type, fun_name, args))
+            if fun_name in templates:
+                s = templates[fun_name]
+            else:
+                args = filter(lambda x: x[0] != 'void', args)
+                for i in xrange(0, len(args)):
+                    if not args[i][1]:
+                        args[i][1] = 'arg%d' % i
+                s = code(ret_type, fun_name, args)
+            lines.append(s)
             break
 
     print_code(defines, includes, lines)
