@@ -98,13 +98,14 @@ def noreturn_def_code(ret_type, fun_name, args):
 def return_def_code(ret_type, fun_name, args):
     if len(args) and args[-1][0] == '...':
         args = args[:-1]
-        return Template("""$rettype $fname($args)
+        return Template("""$rettype $fname($args, ...)
 {
   va_list args;
   va_start(args, $lastarg);
-  typedef $rettype (*ftype)($argtypes);
-  return ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames);
+  typedef $rettype (*ftype)($argtypes, ...);
+  $rettype ret = ((ftype)dlsym(RTLD_NEXT, "$fname"))($argnames, args);
   va_end(args);
+  return ret;
 }
 """).substitute(rettype=ret_type,
                 fname=fun_name,
