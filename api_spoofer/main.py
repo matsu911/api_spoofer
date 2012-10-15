@@ -132,7 +132,7 @@ def code(ret_type, fun_name, args):
 templates_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 templates = {}
 for path in os.listdir(templates_path):
-    templates[path] = open(os.path.join(templates_path, path)).read()  
+    templates[os.path.splitext(path)[0]] = open(os.path.join(templates_path, path)).read()  
 
 def main():
     usage = "usage: %prog [options] bin_path"
