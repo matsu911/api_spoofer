@@ -56,8 +56,6 @@ def extract_valid_header_files(syms, defines, include_dirs):
 
     return header_files
 
-ignored_symbols = ['calloc']
-
 def print_code(defines, includes, lines):
     for line in defines:
         print line
@@ -131,16 +129,10 @@ def code(ret_type, fun_name, args):
     else:
         return return_def_code(ret_type, fun_name, args)
 
-templates = {'printf' : """int printf(__const char* format, ...)
-{
-  va_list args;
-  va_start(args, format);
-  typedef int (*ftype)(__const char*, ...);
-  int ret = ((ftype)dlsym(RTLD_NEXT, "vprintf"))(format, args);
-  va_end(args);
-  return ret;
-}
-"""}
+templates_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+templates = {}
+for path in os.listdir(templates_path):
+    templates[path] = open(os.path.join(templates_path, path)).read()  
 
 def main():
     usage = "usage: %prog [options] bin_path"
@@ -169,7 +161,7 @@ def main():
     funcs = extract_function_declares(*header_files)
 
     lines = []
-    for sym in [x for x in syms if x not in ignored_symbols]:
+    for sym in syms:
         for ret_type, fun_name, args in filter(lambda x: x[1] == sym, funcs):
             if fun_name in templates:
                 s = templates[fun_name]

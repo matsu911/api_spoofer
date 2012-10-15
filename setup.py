@@ -8,7 +8,7 @@ sys.path.append('./')
 sys.path.append('./test')
 
 setup(name = "API Spoofer",
-      version = "0.0.1",
+      version = "0.0.4",
       packages = find_packages(),
       author = "Shigeaki Matsumura",
       author_email = "matsu911@gmail.com",
@@ -18,6 +18,7 @@ setup(name = "API Spoofer",
       long_description = "README.md",
       keywords = "API spoofing",
       test_suite = 'test_main.suite',
+      package_data = {'' : ['templates/*']},
       entry_points = {
         'console_scripts' : "api_spoofer = api_spoofer:main"
         }
